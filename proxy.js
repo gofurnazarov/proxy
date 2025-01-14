@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
 
 // Start the server
 const PORT = 3001;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com`);
 });
