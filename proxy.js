@@ -51,11 +51,16 @@ const server = http.createServer((req, res) => {
 
     // Make the request to the target URL
     const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
-        // Only set Access-Control-Allow-Origin once, and ensure it's not duplicated
-        const headers = {
+        // Set the headers for the response
+        let headers = {
             ...proxyRes.headers,
             'Access-Control-Allow-Origin': '*', // Allow all origins, or set a specific origin here
         };
+
+        // Avoid overwriting the Access-Control-Allow-Origin header if it already exists
+        if (proxyRes.headers['access-control-allow-origin']) {
+            delete headers['Access-Control-Allow-Origin']; // Remove it if already set
+        }
 
         // Forward status and headers
         res.writeHead(proxyRes.statusCode, headers);
