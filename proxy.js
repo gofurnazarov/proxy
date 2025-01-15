@@ -41,6 +41,7 @@ const server = http.createServer((req, res) => {
         headers: {
             ...req.headers,
             'Host': parsedTargetUrl.host,
+            'Accept-Language': req.headers['accept-language'] || 'uz',
         },
     };
 
