@@ -32,8 +32,25 @@ const server = http.createServer((req, res) => {
     // Determine the appropriate module to use (http or https)
     const protocol = parsedTargetUrl.protocol === 'https:' ? https : http;
 
+    // Create options for the proxy request
+    const proxyOptions = {
+        hostname: parsedTargetUrl.hostname,
+        port: parsedTargetUrl.port || (parsedTargetUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedTargetUrl.path,
+        method: req.method,
+        headers: {
+            ...req.headers,
+            'Host': parsedTargetUrl.host,
+        },
+    };
+
+    // Ensure Content-Type is forwarded correctly
+    if (!proxyOptions.headers['content-type']) {
+        proxyOptions.headers['content-type'] = 'application/json'; // Set a default Content-Type
+    }
+
     // Make the request to the target URL
-    const proxyRequest = protocol.request(targetUrl, (proxyRes) => {
+    const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
         // Forward status and headers
         res.writeHead(proxyRes.statusCode, {
             ...proxyRes.headers,
