@@ -44,14 +44,9 @@ const server = http.createServer((req, res) => {
         },
     };
 
-    // Ensure Content-Type is forwarded correctly
-    if (!proxyOptions.headers['content-type']) {
-        proxyOptions.headers['content-type'] = 'application/json'; // Set a default Content-Type
-    }
-
     // Make the request to the target URL
     const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
-        // Set the headers for the response
+        // Set headers for the response
         let headers = {
             ...proxyRes.headers,
             'Access-Control-Allow-Origin': '*', // Allow all origins, or set a specific origin here
