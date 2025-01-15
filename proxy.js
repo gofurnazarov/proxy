@@ -2,7 +2,6 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 
-
 const server = http.createServer((req, res) => {
     if (req.method === 'OPTIONS') {
         res.writeHead(200, {
@@ -46,15 +45,22 @@ const server = http.createServer((req, res) => {
         },
     };
 
-    console.log('Proxied URL:', modifiedPath); // Log the modified path
-    console.log('Request Headers:', proxyOptions.headers); // Log the request headers
+    console.log('Proxied URL:', modifiedPath);
+    console.log('Request Headers:', proxyOptions.headers);
 
     const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, {
+        const headers = {
             ...proxyRes.headers,
-            'Access-Control-Allow-Origin': '*',
-        });
-        console.log('Response Headers:', proxyRes.headers); // Log the response headers
+            'Access-Control-Allow-Origin': '*', // Set only once
+        };
+
+        // Remove redundant Access-Control-Allow-Origin header if it exists
+        if (proxyRes.headers['access-control-allow-origin']) {
+            delete headers['access-control-allow-origin'];
+        }
+
+        res.writeHead(proxyRes.statusCode, headers);
+        console.log('Response Headers:', proxyRes.headers);
         proxyRes.pipe(res);
     });
 
@@ -71,3 +77,4 @@ server.listen(PORT, () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz`);
 });
+
