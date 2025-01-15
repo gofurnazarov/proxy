@@ -51,11 +51,14 @@ const server = http.createServer((req, res) => {
 
     // Make the request to the target URL
     const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
-        // Forward status and headers
-        res.writeHead(proxyRes.statusCode, {
+        // Only set Access-Control-Allow-Origin once, and ensure it's not duplicated
+        const headers = {
             ...proxyRes.headers,
-            'Access-Control-Allow-Origin': '*', // Allow all origins
-        });
+            'Access-Control-Allow-Origin': '*', // Allow all origins, or set a specific origin here
+        };
+
+        // Forward status and headers
+        res.writeHead(proxyRes.statusCode, headers);
 
         // Pipe the response from the target server to the client
         proxyRes.pipe(res);
