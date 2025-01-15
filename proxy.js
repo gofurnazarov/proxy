@@ -29,6 +29,8 @@ const server = http.createServer((req, res) => {
     // Parse the target URL
     const parsedTargetUrl = url.parse(targetUrl);
 
+    const queryParams = new URLSearchParams(parsedTargetUrl.query); queryParams.set('lang', 'uz'); const modifiedPath = `${parsedTargetUrl.pathname}?${queryParams.toString()}`;
+    
     // Determine the appropriate module to use (http or https)
     const protocol = parsedTargetUrl.protocol === 'https:' ? https : http;
 
@@ -36,12 +38,12 @@ const server = http.createServer((req, res) => {
     const proxyOptions = {
         hostname: parsedTargetUrl.hostname,
         port: parsedTargetUrl.port || (parsedTargetUrl.protocol === 'https:' ? 443 : 80),
-        path: parsedTargetUrl.path,
+        path: modifiedPath,
         method: req.method,
         headers: {
             ...req.headers,
             'Host': parsedTargetUrl.host,
-            'Accept-Language': req.headers['accept-language'] || 'uz',
+            // 'Accept-Language': 'uz',
         },
     };
 
