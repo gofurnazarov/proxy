@@ -26,12 +26,13 @@ const server = http.createServer((req, res) => {
     const parsedTargetUrl = url.parse(targetUrl);
     const protocol = parsedTargetUrl.protocol === 'https:' ? https : http;
 
-    // Extract lang parameter from the incoming request or default to 'uz'
-    const incomingLang = queryObject.lang || 'uz';
-
-    // Modify query parameters to include the desired language
+    // Forward all query parameters
     const queryParams = new URLSearchParams(parsedTargetUrl.query);
-    queryParams.set('lang', incomingLang);
+    Object.keys(queryObject).forEach(key => {
+        if (key !== 'url') {
+            queryParams.set(key, queryObject[key]);
+        }
+    });
     const modifiedPath = `${parsedTargetUrl.pathname}?${queryParams.toString()}`;
 
     const proxyOptions = {
@@ -75,6 +76,5 @@ const server = http.createServer((req, res) => {
 const PORT = 3001;
 server.listen(PORT, () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
-    console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz`);
+    console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz&orgunit=1000034185670`);
 });
-
