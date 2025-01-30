@@ -111,7 +111,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const PORT = 80;
+const PORT = 3001;
 server.listen(PORT, () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz&orgunit=1000034185670`);
