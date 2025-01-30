@@ -117,7 +117,7 @@ const server = https.createServer(options, (req, res) => {
 });
 
 const PORT = 443;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz&orgunit=1000034185670`);
 });
