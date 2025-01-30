@@ -6,75 +6,80 @@ const path = require('path');
 
 const PUBLIC_DIR = path.join(__dirname, 'public'); // Change this if needed
 
-const server = http.createServer((req, res) => {
-    // if (req.method === 'OPTIONS') {
-    //     res.writeHead(200, {
-    //         'Access-Control-Allow-Origin': '*',
-    //         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    //         'Access-Control-Allow-Headers': 'Content-Type',
-    //         'Access-Control-Max-Age': 86400,
-    //     });
-    //     res.end();
-    //     return;
-    // }
+const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/pozitivchi.uz/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/pozitivchi.uz/fullchain.pem')
+};
 
-    // const queryObject = url.parse(req.url, true).query;
-    // const targetUrl = queryObject.url;
+const server = https.createServer(options, (req, res) => {
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': 86400,
+        });
+        res.end();
+        return;
+    }
 
-    // if (!targetUrl) {
-    //     res.writeHead(400, { 'Content-Type': 'text/plain' });
-    //     res.end('Error: Please provide a URL using the "url" query parameter.\n');
-    //     return;
-    // }
+    const queryObject = url.parse(req.url, true).query;
+    const targetUrl = queryObject.url;
 
-    // const parsedTargetUrl = url.parse(targetUrl);
-    // const protocol = parsedTargetUrl.protocol === 'https:' ? https : http;
+    if (!targetUrl) {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Error: Please provide a URL using the "url" query parameter.\n');
+        return;
+    }
 
-    // // Forward all query parameters
-    // const queryParams = new URLSearchParams(parsedTargetUrl.query);
-    // Object.keys(queryObject).forEach(key => {
-    //     if (key !== 'url') {
-    //         queryParams.set(key, queryObject[key]);
-    //     }
-    // });
-    // const modifiedPath = `${parsedTargetUrl.pathname}?${queryParams.toString()}`;
+    const parsedTargetUrl = url.parse(targetUrl);
+    const protocol = parsedTargetUrl.protocol === 'https:' ? https : http;
 
-    // const proxyOptions = {
-    //     hostname: parsedTargetUrl.hostname,
-    //     port: parsedTargetUrl.port || (parsedTargetUrl.protocol === 'https:' ? 443 : 80),
-    //     path: modifiedPath,
-    //     method: req.method,
-    //     headers: {
-    //         ...req.headers,
-    //         'Host': parsedTargetUrl.host,
-    //     },
-    // };
+    // Forward all query parameters
+    const queryParams = new URLSearchParams(parsedTargetUrl.query);
+    Object.keys(queryObject).forEach(key => {
+        if (key !== 'url') {
+            queryParams.set(key, queryObject[key]);
+        }
+    });
+    const modifiedPath = `${parsedTargetUrl.pathname}?${queryParams.toString()}`;
 
-    // console.log('Proxied URL:', modifiedPath);
-    // console.log('Request Headers:', proxyOptions.headers);
+    const proxyOptions = {
+        hostname: parsedTargetUrl.hostname,
+        port: parsedTargetUrl.port || (parsedTargetUrl.protocol === 'https:' ? 443 : 80),
+        path: modifiedPath,
+        method: req.method,
+        headers: {
+            ...req.headers,
+            'Host': parsedTargetUrl.host,
+        },
+    };
 
-    // const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
-    //     const headers = {
-    //         ...proxyRes.headers,
-    //         'Access-Control-Allow-Origin': '*', // Set only once
-    //     };
+    console.log('Proxied URL:', modifiedPath);
+    console.log('Request Headers:', proxyOptions.headers);
 
-    //     // Remove redundant Access-Control-Allow-Origin header if it exists
-    //     if (proxyRes.headers['access-control-allow-origin']) {
-    //         delete headers['access-control-allow-origin'];
-    //     }
+    const proxyRequest = protocol.request(proxyOptions, (proxyRes) => {
+        const headers = {
+            ...proxyRes.headers,
+            'Access-Control-Allow-Origin': '*', // Set only once
+        };
 
-    //     res.writeHead(proxyRes.statusCode, headers);
-    //     console.log('Response Headers:', proxyRes.headers);
-    //     proxyRes.pipe(res);
-    // });
+        // Remove redundant Access-Control-Allow-Origin header if it exists
+        if (proxyRes.headers['access-control-allow-origin']) {
+            delete headers['access-control-allow-origin'];
+        }
 
-    // proxyRequest.on('error', (err) => {
-    //     res.writeHead(500, { 'Content-Type': 'text/plain' });
-    //     res.end(`Error: Unable to proxy the request. ${err.message}\n`);
-    // });
+        res.writeHead(proxyRes.statusCode, headers);
+        console.log('Response Headers:', proxyRes.headers);
+        proxyRes.pipe(res);
+    });
 
-    // req.pipe(proxyRequest);
+    proxyRequest.on('error', (err) => {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(`Error: Unable to proxy the request. ${err.message}\n`);
+    });
+
+    req.pipe(proxyRequest);
 
 
     
@@ -111,8 +116,9 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const PORT = 80;
+const PORT = 443;
 server.listen(PORT, () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz&orgunit=1000034185670`);
 });
+
