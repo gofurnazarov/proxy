@@ -5,7 +5,6 @@ const fs = require('fs');
 const path = require('path');
 
 const PUBLIC_DIR = path.join(__dirname, 'public'); // Change this if needed
-const PORT = 80; // Certbot requires port 80 for HTTP verification
 
 const server = http.createServer((req, res) => {
     if (req.method === 'OPTIONS') {
@@ -112,7 +111,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const PORT = 3001;
+const PORT = 80;
 server.listen(PORT, () => {
     console.log(`Proxy server is running on http://localhost:${PORT}`);
     console.log(`To proxy a URL, visit http://localhost:${PORT}/?url=http://example.com&lang=uz&orgunit=1000034185670`);
