@@ -1,6 +1,11 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
+
+const PUBLIC_DIR = path.join(__dirname, 'public'); // Change this if needed
+const PORT = 80; // Certbot requires port 80 for HTTP verification
 
 const server = http.createServer((req, res) => {
     if (req.method === 'OPTIONS') {
@@ -71,6 +76,40 @@ const server = http.createServer((req, res) => {
     });
 
     req.pipe(proxyRequest);
+
+
+    
+    // Public folder
+    let filePath = path.join(PUBLIC_DIR, req.url);
+
+    // Prevent directory traversal attacks
+    if (!filePath.startsWith(PUBLIC_DIR)) {
+        res.writeHead(403);
+        return res.end('403 Forbidden');
+    }
+
+    // Check if it's a directory
+    fs.stat(filePath, (err, stats) => {
+        if (err) {
+            res.writeHead(404);
+            return res.end('404 Not Found');
+        }
+
+        if (stats.isDirectory()) {
+            filePath = path.join(filePath, 'index.html'); // Serve index.html if available
+        }
+
+        // Read and serve the file
+        fs.readFile(filePath, (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                return res.end('500 Internal Server Error');
+            }
+
+            res.writeHead(200);
+            res.end(data);
+        });
+    });
 });
 
 const PORT = 3001;
