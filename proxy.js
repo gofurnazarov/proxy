@@ -7,8 +7,8 @@ const path = require('path');
 const PUBLIC_DIR = path.join(__dirname, 'public'); // Change this if needed
 
 const options = {
-    key: fs.readFileSync('/etc/letsencrypt/live/pozitivchi.uz/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/pozitivchi.uz/fullchain.pem')
+    key: fs.readFileSync('./privkey.pem'),
+    cert: fs.readFileSync('./fullchain.pem')
 };
 
 const server = https.createServer(options, (req, res) => {
